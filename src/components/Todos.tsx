@@ -3,6 +3,7 @@ import React from 'react';
 import {
   Dimensions,
   ImageBackground,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -10,27 +11,119 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
+import EvilIcons from 'react-native-vector-icons/Feather';
+import Entypo from 'react-native-vector-icons/Entypo';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 interface TodosProps {}
 
 interface Todo {
   name: string;
-  id: string;
-  status: 'Pending' | 'Completed' | 'Waiting';
+  day: string;
+  status: boolean;
+  id: number;
 }
 interface TodosState {
   name: string;
+  status: boolean;
+  id: number | null;
   todos: Todo[];
 }
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
+
+const data = [
+  {
+    name: 'Dinner',
+    day: 'Today at 8:00 PM',
+    status: true,
+    id: 1,
+  },
+  {
+    name: 'Walk with coby',
+    day: 'Today at 3:30 PM',
+    status: false,
+    id: 2,
+  },
+  {
+    name: 'Buy Grocery',
+    day: 'Today at 10:30 AM',
+    status: true,
+    id: 3,
+  },
+  {
+    name: 'Go To repaired shop',
+    day: 'Today at 9:30 AM',
+    status: false,
+    id: 4,
+  },
+  {
+    name: 'Dinner',
+    day: 'Today at 8:00 PM',
+    status: true,
+    id: 5,
+  },
+  {
+    name: 'Walk with coby',
+    day: 'Today at 3:30 PM',
+    status: false,
+    id: 6,
+  },
+  {
+    name: 'Buy Grocery',
+    day: 'Today at 10:30 AM',
+    status: true,
+    id: 7,
+  },
+  {
+    name: 'Go To repaired shop',
+    day: 'Today at 9:30 AM',
+    status: false,
+    id: 8,
+  },
+];
 class Todos extends React.Component<TodosProps, TodosState> {
   constructor(props: TodosProps) {
     super(props);
-    this.state = {name: '', todos: []};
+    this.state = {name: '', todos: data || [], id: null, status: false};
   }
+
+  componentDidMount(): void {
+    this.setState({todos: data});
+  }
+  AddTodo = () => {
+    this.setState({
+      name: '',
+      todos: [
+        ...this.state.todos,
+        {
+          name: this.state.name,
+          day: '',
+          id: Date.now(),
+          status: this.state.status,
+        },
+      ],
+    });
+  };
+
+  deleteTodo = (id: number) => {
+    this.setState({
+      todos: this.state.todos.filter(t => t.id !== id),
+    });
+  };
+
+  editTodo = (id: number) => {
+    this.setState({
+      todos: this.state.todos.map(t => {
+        if (t.id === id) {
+          t.status = !t.status;
+        }
+        return t;
+      }),
+    });
+  };
   render() {
     return (
-      <>
+      <ScrollView>
         <ImageBackground
           source={require('../assets/background.png')}
           style={styles.imageBackground}>
@@ -47,11 +140,64 @@ class Todos extends React.Component<TodosProps, TodosState> {
             placeholder="Note"
             onChangeText={(text: string) => this.setState({name: text})}
           />
-          <TouchableOpacity style={styles.btnGreen}>
+          <TouchableOpacity
+            style={styles.btnGreen}
+            onPress={() => this.AddTodo()}>
             <Icon color="#fff" size={30} name="plus" />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.btnGreen2}
+            onPress={() => this.AddTodo()}>
+            <Entypo name="chevron-down" size={30} color="#fff" />
+          </TouchableOpacity>
         </View>
-      </>
+
+        <View style={styles.mainView}>
+          {this.state.todos.map((todo: Todo) => {
+            return (
+              <View key={todo.id} style={styles.viewTodo}>
+                <View style={styles.viewText}>
+                  <Text
+                    style={[
+                      styles.text1,
+                      styles.textTodo,
+                      {
+                        textDecorationLine: todo.status
+                          ? 'line-through'
+                          : 'none',
+                      },
+                    ]}>
+                    {todo.name}
+                  </Text>
+                  <Text style={[styles.text1, styles.smallTextTodo]}>
+                    {todo.day}
+                  </Text>
+                </View>
+
+                <TouchableOpacity onPress={() => this.editTodo(todo.id)}>
+                  {!todo.status ? (
+                    <Entypo name="circle" size={20} color="#20EEB0" />
+                  ) : (
+                    <FontAwesome5
+                      name="check-circle"
+                      size={20}
+                      color="#20EEB0"
+                    />
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => this.deleteTodo(todo.id)}>
+                  <EvilIcons
+                    name="trash-2"
+                    style={{marginLeft: 10}}
+                    size={20}
+                    color="#FF4545"
+                  />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
     );
   }
 }
@@ -96,6 +242,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     fontSize: 16,
     lineHeight: 18,
+    fontFamily: 'Inter',
   },
   viewTextInput: {
     flexDirection: 'row',
@@ -110,6 +257,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#20EEB0',
     padding: 10,
     borderRadius: 3,
+  },
+  btnGreen2: {
+    backgroundColor: '#20EEB0',
+    padding: 10,
+
+    borderRadius: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
+    marginLeft: 3,
+  },
+  mainView: {
+    marginTop: 20,
+  },
+  viewTodo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingLeft: 29,
+    paddingRight: 29,
+    marginTop: 20,
+  },
+  viewText: {
+    flex: 1,
+  },
+  text1: {fontFamily: 'Inter', fontWeight: '400'},
+  textTodo: {
+    color: '#0D0D0D',
+    fontSize: 18,
+    marginBottom: 5,
+  },
+  smallTextTodo: {
+    color: '#888888',
+    fontSize: 16,
   },
 });
 export default Todos;

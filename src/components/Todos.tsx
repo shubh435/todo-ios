@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/AntDesign';
 import EvilIcons from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+
 interface TodosProps {}
 
 interface Todo {
@@ -27,6 +28,9 @@ interface TodosState {
   status: boolean;
   id: number | null;
   todos: Todo[];
+  currentTime: string;
+  date: number;
+  day: string;
 }
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -81,15 +85,58 @@ const data = [
     id: 8,
   },
 ];
-class Todos extends React.Component<TodosProps, TodosState> {
+class Todos extends React.PureComponent<TodosProps, TodosState> {
   constructor(props: TodosProps) {
     super(props);
-    this.state = {name: '', todos: data || [], id: null, status: false};
+    this.state = {
+      name: '',
+      todos: data || [],
+      id: null,
+      status: false,
+      currentTime: '00:00:00',
+      date: 0,
+      day: '',
+    };
+  }
+  timer: any;
+  updateTime = () => {
+    const d = new Date();
+    let hrs = d.getHours();
+    let mins = d.getMinutes();
+    let date = d.getDate();
+    let day = d.toDateString().split(' ')[0];
+
+    this.setState({todos: data, currentTime: `${hrs}:${mins}`, date, day});
+  };
+  componentDidMount(): void {
+    this.updateTime();
+    this.timer = setInterval(() => {
+      this.updateTime();
+    }, (1000 * 59) / 2);
   }
 
-  componentDidMount(): void {
-    this.setState({todos: data});
+  componentWillUnmount(): void {
+    clearInterval(this.timer);
   }
+  // componentDidUpdate(
+  //   prevProps: Readonly<TodosProps>,
+  //   prevState: Readonly<TodosState>,
+  //   snapshot?: any,
+  // ): void {
+  //   if (prevState.sec !== this.state.sec) {
+  //     let d = new Date();
+  //     let hrs = d.getHours();
+  //     let mins = d.getMinutes();
+  //     let sec = d.getSeconds();
+  //     console.log({
+  //       hrs,
+  //       mins,
+  //       sec,
+  //     });
+
+  //     this.setState({currentTime: `${hrs}:${mins}:${sec}`, sec});
+  //   }
+  // }
   AddTodo = () => {
     this.setState({
       name: '',
@@ -128,8 +175,12 @@ class Todos extends React.Component<TodosProps, TodosState> {
           source={require('../assets/background.png')}
           style={styles.imageBackground}>
           <View style={styles.backgroudView}>
-            <Text style={[styles.text, styles.smallText]}>Thu 9</Text>
-            <Text style={[styles.text, styles.bigText]}>6:23 AM</Text>
+            <Text style={[styles.text, styles.smallText]}>
+              {this.state.day} {this.state.date}
+            </Text>
+            <Text style={[styles.text, styles.bigText]}>
+              {this.state.currentTime} AM
+            </Text>
           </View>
         </ImageBackground>
 
@@ -145,9 +196,7 @@ class Todos extends React.Component<TodosProps, TodosState> {
             onPress={() => this.AddTodo()}>
             <Icon color="#fff" size={30} name="plus" />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.btnGreen2}
-            onPress={() => this.AddTodo()}>
+          <TouchableOpacity style={styles.btnGreen2} onPress={() => {}}>
             <Entypo name="chevron-down" size={30} color="#fff" />
           </TouchableOpacity>
         </View>
